@@ -3,139 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Mobile Trivia 2026</title>
+    <title>Trivia Pro 2026</title>
     <style>
-        :root { --p: #2563eb; --s: #059669; --bg: #f3f4f6; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 15px; display: flex; justify-content: center; }
-        #game-box { width: 100%; max-width: 450px; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; font-weight: bold; border-bottom: 2px solid #eee; margin-bottom: 15px; padding-bottom: 10px; }
-        .q-text { font-size: 1.2rem; margin-bottom: 20px; min-height: 60px; }
-        .options { display: grid; gap: 10px; }
-        button { padding: 15px; border: 1px solid #ddd; border-radius: 10px; background: white; font-size: 1rem; text-align: left; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
-        button:active { background: #e0e7ff; border-color: var(--p); }
+        :root {
+            --bg: #0f172a; --card: #1e293b; --accent: #38bdf8;
+            --win: #22c55e; --loss: #ef4444; --text: #f8fafc;
+        }
+        body { 
+            font-family: -apple-system, system-ui, sans-serif; 
+            background: var(--bg); color: var(--text); 
+            margin: 0; display: flex; justify-content: center; min-height: 100vh;
+        }
+        #app { width: 100%; max-width: 450px; padding: 20px; display: flex; flex-direction: column; }
+        
+        /* UX Components */
+        .progress-container { width: 100%; height: 6px; background: #334155; border-radius: 10px; margin: 15px 0; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: var(--accent); transition: 0.3s; }
+        
+        .stat-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .wallet { font-size: 1.5rem; font-weight: 800; color: var(--win); }
+        .difficulty { font-size: 0.8rem; background: #334155; padding: 4px 10px; border-radius: 20px; }
+
+        .card { background: var(--card); border-radius: 20px; padding: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
+        .q-text { font-size: 1.25rem; font-weight: 600; line-height: 1.4; margin-bottom: 25px; }
+        
+        .options { display: grid; gap: 12px; }
+        button { 
+            background: #334155; color: white; border: none; padding: 16px; 
+            border-radius: 12px; font-size: 1rem; text-align: left; cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+        }
+        button:active { transform: scale(0.98); background: #475569; }
+        
+        /* Feedback Overlay */
+        #feedback { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            padding: 30px; border-radius: 20px; text-align: center; font-weight: bold;
+            font-size: 2rem; z-index: 10; display: none; width: 80%;
+        }
+        .correct { background: var(--win); color: white; }
+        .wrong { background: var(--loss); color: white; }
+
         .hidden { display: none; }
-        .result-card { text-align: center; }
-        .score { font-size: 2.5rem; color: var(--s); font-weight: 800; margin: 15px 0; }
-        .insight-box { background: #fffbeb; padding: 15px; border-radius: 10px; font-size: 0.9rem; border-left: 4px solid #f59e0b; margin-top: 15px; }
-        .next-btn { background: var(--p); color: white; border: none; width: 100%; text-align: center; margin-top: 20px; cursor: pointer; }
+        .insight-box { background: #0c4a6e; border-left: 4px solid var(--accent); padding: 15px; margin-top: 20px; font-size: 0.9rem; border-radius: 8px; }
+        .primary-btn { background: var(--accent); color: #0f172a; font-weight: bold; width: 100%; margin-top: 20px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div id="game-box">
-    <div id="quiz-ui">
-        <div class="header">
-            <span id="cat-title">Category</span>
-            <span id="val-tag" style="color: var(--s)">$5</span>
+<div id="app">
+    <div id="quiz-screen">
+        <div class="stat-bar">
+            <div class="difficulty" id="cat-label">Category</div>
+            <div class="wallet" id="wallet-display">$0</div>
         </div>
-        <div class="q-text" id="q-text">Loading...</div>
-        <div class="options" id="opt-box"></div>
+        <div class="progress-container"><div id="progress-bar"></div></div>
+        
+        <div class="card">
+            <div id="val-label" style="color: var(--accent); font-weight: bold; margin-bottom: 5px;">$1 Question</div>
+            <div class="q-text" id="q-text">Loading...</div>
+            <div class="options" id="opt-container"></div>
+        </div>
     </div>
 
-    <div id="result-ui" class="hidden result-card">
-        <h2 id="res-title">Category Complete!</h2>
-        <p>You won:</p>
-        <div class="score" id="res-cash">$0</div>
-        <p id="res-acc">Accuracy: 0%</p>
-        <div class="insight-box" id="res-insight"></div>
-        <button class="next-btn" onclick="nextCategory()">Next Challenge</button>
+    <div id="feedback"></div>
+
+    <div id="result-screen" class="hidden">
+        <div class="card" style="text-align: center;">
+            <h2 id="res-title">Category Complete!</h2>
+            <p>Your current bankroll:</p>
+            <div class="wallet" id="final-wallet" style="font-size: 3rem;">$0</div>
+            <p id="accuracy">Accuracy: 0%</p>
+            <div class="insight-box" id="insight-text"></div>
+            <button class="primary-btn" onclick="nextCategory()">Next Category</button>
+        </div>
     </div>
 </div>
 
 <script>
-const data = [
+const trivia = [
     {
-        cat: "Disney & Pixar",
+        cat: "Disney/Pixar",
         questions: [
-            { v: 5, q: "In Zootopia, what is Judy Hopps' official job title?", a: ["Meter Maid", "Police Officer", "Detective", "Mayor"], c: 1 },
-            { v: 10, q: "Which 2024 Pixar sequel became the highest-grossing animated film of all time?", a: ["Inside Out 2", "Toy Story 5", "Moana 2", "Elio"], c: 0 },
-            { v: 15, q: "What is the name of the 'savaging' flower in Zootopia?", a: ["Night Howlers", "Blue Violets", "Wolfsbane", "Moon Lilies"], c: 0 },
-            { v: 20, q: "In Pixar's 'Coco', what is the name of Miguel's dog?", a: ["Dante", "Poco", "Hector", "Bruno"], c: 0 },
-            { v: 25, q: "Which Disney park opened 'Zootopia: Better Zoogether' in 2025?", a: ["Disney World", "Disneyland Paris", "Animal Kingdom", "Shanghai Disneyland"], c: 2 },
-            { v: 30, q: "What is the address P. Sherman's dentist office in Finding Nemo?", a: ["22 Sydney St", "42 Wallaby Way", "10 Coral Rd", "15 Shark Cove"], c: 1 },
-            { v: 35, q: "In 'Turning Red', what animal does Mei Lee turn into?", a: ["Red Panda", "Tiger", "Fox", "Cat"], c: 0 },
-            { v: 40, q: "What is the first name of the character 'Mr. Big' in Zootopia?", a: ["Tino", "Fru Fru", "Vito", "Guiseppe"], c: 0 },
-            { v: 45, q: "Which Pixar movie features a robot named WALL-E?", a: ["WALL-E", "Robots", "Bolt", "Cars"], c: 0 },
-            { v: 50, q: "Who was the voice of Nick Wilde in Zootopia?", a: ["Jason Bateman", "Bill Hader", "Chris Pratt", "Tom Hanks"], c: 0 }
+            {v:1, q:"What color is Mickey Mouse's shorts?", a:["Blue","Red","Yellow","Green"], c:1},
+            {v:2, q:"Which Zootopia character is a fast-talking con artist fox?", a:["Duke Weaselton","Nick Wilde","Chief Bogo","Finnick"], c:1},
+            {v:3, q:"In Pixar's 'Up', what is the name of the bird?", a:["Kevin","Doug","Russell","Carl"], c:0},
+            {v:4, q:"Judy Hopps' apartment is in which Zootopia district?", a:["Sahara Square","Tundratown","Grand Pangolin Arms","Rainforest District"], c:2},
+            {v:5, q:"Which Pixar film features a family of superheroes?", a:["The Incredibles","Inside Out","Lightyear","Onward"], c:0},
+            {v:6, q:"In Zootopia, Mr. Big is what kind of animal?", a:["Elephant","Shrew","Bear","Polar Bear"], c:1},
+            {v:7, q:"Who is the princess in the movie 'Brave'?", a:["Moana","Merida","Tiana","Elsa"], c:1},
+            {v:8, q:"What is the name of the toy store in Toy Story 2?", a:["Al's Toy Barn","Pizza Planet","Zurg's Palace","Andy's Shop"], c:0},
+            {v:9, q:"Which movie was the first Pixar feature film?", a:["A Bug's Life","Toy Story","Monsters Inc","Cars"], c:1},
+            {v:10, q:"In Zootopia, what does the 'Night Howler' flower actually do?", a:["Make animals sleep","Cause predator savagery","Heal wounds","Make animals fly"], c:1}
         ],
-        insight: "Valuation Tip: Disney 'Vault' items often appreciate. A 2025 'Inside Out 2' limited popcorn bucket can resell for $45, while a standard one is only $15."
+        insight: "Fun Fact: The Zootopia Land in Shanghai (2024/25) uses state-of-the-art 'frameless' animatronics. Collector ears from the opening sell for $60+ USD now."
     },
     {
-        cat: "Taylor Swift (The Eras)",
+        cat: "Taylor Swift",
         questions: [
-            { v: 5, q: "What is Taylor's lucky number?", a: ["22", "1989", "13", "8"], c: 2 },
-            { v: 10, q: "Which album features the 'Red Scarf'?", a: ["Speak Now", "Red", "Folklore", "Reputation"], c: 1 },
-            { v: 15, q: "What city hosted the final show of The Eras Tour in Dec 2024?", a: ["Toronto", "Vancouver", "London", "Tokyo"], c: 1 },
-            { v: 20, q: "Which vault track features Phoebe Bridgers?", a: ["Nothing New", "Better Man", "Castles Crumbling", "I Can See You"], c: 0 },
-            { v: 25, q: "Taylor's 11th studio album released in 2024 is titled...?", a: ["The Anthology", "TTPD", "Midnights", "Evermore"], c: 1 },
-            { v: 30, q: "Who is the 'Eras Tour' movie director?", a: ["Sam Wrench", "Greta Gerwig", "Taylor Swift", "Blake Lively"], c: 0 },
-            { v: 35, q: "What was Taylor's first self-owned album (not a Taylor's Version)?", a: ["Lover", "Reputation", "1989", "Folklore"], c: 0 },
-            { v: 40, q: "Which song was the first 'Taylor's Version' vault track ever released?", a: ["You All Over Me", "Mr. Perfectly Fine", "I Bet You Think About Me", "Slut!"], c: 0 },
-            { v: 45, q: "What is the name of Taylor's cat with the highest 'net worth'?", a: ["Meredith Grey", "Olivia Benson", "Benjamin Button", "Karma"], c: 1 },
-            { v: 50, q: "Which song did Taylor write entirely by herself at age 14?", a: ["Lucky You", "The Best Day", "Tim McGraw", "Our Song"], c: 0 }
+            {v:1, q:"What is Taylor's middle name?", a:["Elizabeth","Alison","Rose","Jane"], c:1},
+            {v:2, q:"Which album features a snake as its mascot?", a:["Red","Reputation","1989","Midnights"], c:1},
+            {v:3, q:"In the song 'Shake It Off', what does she say she's 'lightning on'?", a:["Her feet","My own feet","The stage","The beat"], c:1},
+            {v:4, q:"Which 2024 album is often abbreviated as TTPD?", a:["The Tortured Poets Department","Taylor's Tiny Poetry Diary","Ten Thousand Pretty Dreams","The Total Pop Decade"], c:0},
+            {v:5, q:"How many Grammys did Taylor win for 'Album of the Year' by 2024?", a:["2","3","4","5"], c:2},
+            {v:6, q:"Which Taylor Swift music video features her as a man?", a:["The Man","Bad Blood","Me!","Anti-Hero"], c:0},
+            {v:7, q:"What is the 'Eras Tour' tradition involving beaded jewelry?", a:["Friendship Bracelets","Ring Exchange","Necklace Swaps","Anklets"], c:0},
+            {v:8, q:"Which song was written about her grandmother?", a:["Marjorie","Epiphany","Dorothea","Willow"], c:0},
+            {v:9, q:"In 2025/26, which city renamed itself 'Swiftie-ville' for her visit?", a:["Toronto","Vancouver","Miami","New Orleans"], c:1},
+            {v:10, q:"What was the first 'From the Vault' track to hit #1?", a:["All Too Well (10 Min)","Mr. Perfectly Fine","I Can See You","Is It Over Now?"], c:3}
         ],
-        insight: "Resale Insight: Official Eras Tour hoodies (New: $75) maintain a used 'Floor Price' of $50 if in good condition. Fakes sell for <$20."
+        insight: "Market Insight: Taylor Swift vinyl 'variants' (different colors) retail for $40 but can resell for $150 if they are limited 'Target' or 'Website' exclusives."
     },
     {
-        cat: "Finance & Canadian History",
+        cat: "Finance & Canada",
         questions: [
-            { v: 5, q: "What is the tax-free account limit for most Canadians (TFSA)?", a: ["$7,000", "Varies by year", "$10,000", "$5,000"], c: 1 },
-            { v: 10, q: "Who is the current Prime Minister of Canada (as of 2026)?", a: ["Justin Trudeau", "Pierre Poilievre", "Jagmeet Singh", "Stephen Harper"], c: 0 },
-            { v: 15, q: "The 'Rule of 72' helps you calculate what?", a: ["Tax owing", "Time to double money", "Retirement age", "Credit score"], c: 1 },
-            { v: 20, q: "Canada celebrates its 150th anniversary of the 'Indian Act' in which year?", a: ["2024", "2025", "2026", "2027"], c: 2 },
-            { v: 25, q: "Which Canadian city hosted its 50th Olympic anniversary in 2026?", a: ["Montreal", "Calgary", "Vancouver", "Toronto"], c: 0 },
-            { v: 30, q: "What is a 'Dividend'?", a: ["A loan", "Company profit share", "A tax penalty", "Stock price"], c: 1 },
-            { v: 35, q: "Which province joined Confederation last (1949)?", a: ["PEI", "Newfoundland", "Alberta", "BC"], c: 1 },
-            { v: 40, q: "What is the Bank of Canada's typical inflation target?", a: ["0%", "2%", "5%", "10%"], c: 1 },
-            { v: 45, q: "In 2025, which Canadian space mission saw the first Canadian orbit the moon?", a: ["Artemis II", "Apollo 18", "STS-100", "Canadarm3"], c: 0 },
-            { v: 50, q: "What does MER stand for in mutual funds?", a: ["Management Expense Ratio", "Market Equity Rate", "Monthly Earned Return", "Minimum Entry Requirement"], c: 0 }
+            {v:1, q:"What is the Canadian $1 coin called?", a:["Toonie","Loonie","Buck","Maple"], c:1},
+            {v:2, q:"What is 'Interest'?", a:["A tax on savings","Cost of borrowing money","A bank penalty","A government gift"], c:1},
+            {v:3, q:"Which province is known for its red sand beaches?", a:["NS","NB","PEI","NL"], c:2},
+            {v:4, q:"What does RRSP stand for?", a:["Registered Retirement Savings Plan","Real Rate Savings Plan","Royal Revenue Saving Program","Rapid Retirement Saving Plan"], c:0},
+            {v:5, q:"Who is the monarch on the Canadian 20-dollar bill?", a:["Queen Elizabeth II","King Charles III","Queen Victoria","King George"], c:1},
+            {v:6, q:"What is a 'Credit Score' measuring?", a:"Your income","Your net worth","Your reliability to repay debt","Your savings"], c:2},
+            {v:7, q:"Which 2025 event marked a huge change in Canadian housing policy?", a:["The Rent Cap Act","The Foreign Buyer Ban Extension","The Tiny Home Grant","The Interest Rate Freeze"], c:1},
+            {v:8, q:"What is 'Diversification' in investing?", a:["Buying one big stock","Spreading money across different assets","Saving in a shoebox","Only buying gold"], c:1},
+            {v:9, q:"Which city is the capital of Canada?", a:["Toronto","Montreal","Ottawa","Vancouver"], c:2},
+            {v:10, q:"What is the 'Capital Gains Tax'?", a:["Tax on your salary","Tax on the profit from selling an asset","A tax for being rich","A tax on bank interest"], c:1}
         ],
-        insight: "Savings Tip: Used financial textbooks from 2023-2024 are often a 'Steal' at $10-15. Basic principles don't change, even if tax numbers do!"
+        insight: "Money Tip: A 'Steal' for a first-time investor is any Index Fund with an MER (Fee) under 0.10%. New investors often lose 2% to hidden bank fees!"
     }
 ];
 
-let catIdx = 0, qIdx = 0, total = 0, catCorrect = 0;
+let catIdx = 0, qIdx = 0, wallet = 0, catCorrect = 0;
 
-function loadQ() {
-    const q = data[catIdx].questions[qIdx];
-    document.getElementById('cat-title').innerText = data[catIdx].cat;
-    document.getElementById('val-tag').innerText = `$${q.v}`;
+function loadQuestion() {
+    const q = trivia[catIdx].questions[qIdx];
+    document.getElementById('cat-label').innerText = trivia[catIdx].cat;
+    document.getElementById('wallet-display').innerText = `$${wallet}`;
+    document.getElementById('val-label').innerText = `$${q.v} Question`;
     document.getElementById('q-text').innerText = q.q;
-    const box = document.getElementById('opt-box');
-    box.innerHTML = '';
+    document.getElementById('progress-bar').style.width = `${(qIdx / 10) * 100}%`;
+    
+    const container = document.getElementById('opt-container');
+    container.innerHTML = '';
     q.a.forEach((opt, i) => {
-        const b = document.createElement('button');
-        b.innerText = opt;
-        b.onclick = () => {
-            if(i === q.c) { total += q.v; catCorrect++; }
-            qIdx++;
-            if(qIdx < 10) loadQ(); else showRes();
-        };
-        box.appendChild(b);
+        const btn = document.createElement('button');
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(i);
+        container.appendChild(btn);
     });
 }
 
-function showRes() {
-    document.getElementById('quiz-ui').classList.add('hidden');
-    document.getElementById('result-ui').classList.remove('hidden');
-    document.getElementById('res-cash').innerText = `$${total}`;
-    document.getElementById('res-acc').innerText = `Accuracy: ${(catCorrect/10)*100}%`;
-    document.getElementById('res-insight').innerText = data[catIdx].insight;
+function checkAnswer(idx) {
+    const q = trivia[catIdx].questions[qIdx];
+    const fb = document.getElementById('feedback');
+    fb.style.display = 'block';
+    
+    if (idx === q.c) {
+        wallet += q.v;
+        catCorrect++;
+        fb.innerText = `CORRECT! +$${q.v}`;
+        fb.className = 'correct';
+    } else {
+        wallet -= q.v;
+        fb.innerText = `WRONG! -$${q.v}`;
+        fb.className = 'wrong';
+    }
+
+    setTimeout(() => {
+        fb.style.display = 'none';
+        qIdx++;
+        if (qIdx < 10) loadQuestion(); else showResults();
+    }, 1200);
+}
+
+function showResults() {
+    document.getElementById('quiz-screen').classList.add('hidden');
+    document.getElementById('result-screen').classList.remove('hidden');
+    document.getElementById('final-wallet').innerText = `$${wallet}`;
+    document.getElementById('accuracy').innerText = `Category Accuracy: ${(catCorrect/10)*100}%`;
+    document.getElementById('insight-text').innerText = trivia[catIdx].insight;
 }
 
 function nextCategory() {
     catIdx++;
-    if(catIdx < data.length) {
+    if (catIdx < trivia.length) {
         qIdx = 0; catCorrect = 0;
-        document.getElementById('quiz-ui').classList.remove('hidden');
-        document.getElementById('result-ui').classList.add('hidden');
-        loadQ();
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        loadQuestion();
     } else {
-        document.getElementById('res-title').innerText = "Grand Champion!";
-        document.querySelector('.next-btn').style.display = 'none';
+        document.getElementById('res-title').innerText = "Game Over!";
+        document.querySelector('.primary-btn').classList.add('hidden');
     }
 }
-loadQ();
+
+loadQuestion();
 </script>
 </body>
 </html>
