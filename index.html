@@ -12,7 +12,7 @@
         body { 
             font-family: -apple-system, system-ui, sans-serif; 
             background: var(--bg); color: var(--text); 
-            margin: 0; display: flex; justify-content: center; min-height: 100vh;
+            margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh;
         }
         #app { width: 100%; max-width: 450px; padding: 20px; display: flex; flex-direction: column; }
         
@@ -49,6 +49,18 @@
         .hidden { display: none; }
         .insight-box { background: #0c4a6e; border-left: 4px solid var(--accent); padding: 15px; margin-top: 20px; font-size: 0.9rem; border-radius: 8px; }
         .primary-btn { background: var(--accent); color: #0f172a; font-weight: bold; width: 100%; margin-top: 20px; text-align: center; }
+        h1 { color: var(--accent); font-size: 2rem; margin-bottom: 30px; }
+        #no-btn { position: relative; width: auto; display: inline-block; margin: 20px 10px; }
+    </style>
+    <style>
+        @media (max-width: 600px) {
+            #app { padding: 10px; }
+            .card { padding: 20px; }
+            h1 { font-size: 1.5rem; }
+            .q-text { font-size: 1.1rem; }
+            button { padding: 14px; font-size: 0.9rem; }
+        }
+    </style>
     </style>
 </head>
 <body>
@@ -79,6 +91,21 @@
             <p id="accuracy">Accuracy: 0%</p>
             <button class="primary-btn" onclick="nextCategory()">Next Category</button>
         </div>
+    </div>
+</div>
+
+<div id="landing-screen">
+    <div class="card" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <h1>Hi Jadie, this is your secret admirer, you want to be my sweetie?...</h1>
+        <button class="primary-btn" onclick="showSecondLanding()" style="width: auto; display: inline-block; margin: 10px;">Yes</button>
+        <button id="no-btn" class="primary-btn" style="width: auto; display: inline-block; margin: 10px;">No</button>
+    </div>
+</div>
+
+<div id="second-landing" class="hidden">
+    <div class="card" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <h1>Great, I knew it! Let's play a game...</h1>
+        <button class="primary-btn" onclick="startGame()" style="width: auto; display: inline-block; margin: 10px;">Click to Continue</button>
     </div>
 </div>
 
@@ -212,13 +239,40 @@ function nextCategory() {
         document.getElementById('accuracy').innerText = `Overall Accuracy: ${(totalCorrect/30)*100}%`;
         const resultScreen = document.getElementById('result-screen');
         const newP = document.createElement('p');
-        newP.innerText = "You get to spend with Leon! Or owe him money... Either way, it's a win!";
+        newP.innerText = "You get to spend with me and dada! Or owe him money... Either way, it's a win!";
         resultScreen.appendChild(newP);
+        const img = document.createElement('img');
+        img.src = "baby.png";
+        img.alt = "Celebration graphic";
+        img.style.maxWidth = "100%";
+        img.style.height = "auto";
+        resultScreen.appendChild(img);
         document.querySelector('.primary-btn').classList.add('hidden');
     }
 }
 
-loadQuestion();
+document.getElementById('no-btn').addEventListener('mouseover', () => {
+    const btn = document.getElementById('no-btn');
+    const x = Math.random() * 200 - 100;
+    const y = Math.random() * 200 - 100;
+    btn.style.transform = `translate(${x}px, ${y}px)`;
+});
+
+function showSecondLanding() {
+    document.getElementById('landing-screen').classList.add('hidden');
+    document.getElementById('second-landing').classList.remove('hidden');
+}
+
+function startGame() {
+    document.getElementById('second-landing').classList.add('hidden');
+    document.getElementById('quiz-screen').classList.remove('hidden');
+    loadQuestion();
+}
+
+document.getElementById('quiz-screen').classList.add('hidden');
+document.getElementById('result-screen').classList.add('hidden');
+document.getElementById('second-landing').classList.add('hidden');
+// landing is visible
 </script>
 </body>
 </html>
