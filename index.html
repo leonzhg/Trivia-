@@ -6,8 +6,8 @@
     <title>Trivia Pro 2026</title>
     <style>
         :root {
-            --bg: #0f172a; --card: #1e293b; --accent: #38bdf8;
-            --win: #22c55e; --loss: #ef4444; --text: #f8fafc;
+            --bg: linear-gradient(135deg, #ffe4e1 0%, #ffb6c1 100%); --card: #fce4ec; --accent: #e91e63;
+            --win: #4caf50; --loss: #f44336; --text: #212121;
         }
         body { 
             font-family: -apple-system, system-ui, sans-serif; 
@@ -26,6 +26,8 @@
 
         .card { background: var(--card); border-radius: 20px; padding: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
         .q-text { font-size: 1.25rem; font-weight: 600; line-height: 1.4; margin-bottom: 25px; }
+        
+        img { max-width: 100%; height: auto; border-radius: 10px; margin: 10px 0; }
         
         .options { display: grid; gap: 12px; }
         button { 
@@ -62,6 +64,7 @@
         <div class="card">
             <div id="val-label" style="color: var(--accent); font-weight: bold; margin-bottom: 5px;">$1 Question</div>
             <div class="q-text" id="q-text">Loading...</div>
+            <div id="question-image"></div>
             <div class="options" id="opt-container"></div>
         </div>
     </div>
@@ -74,7 +77,6 @@
             <p>Your current bankroll:</p>
             <div class="wallet" id="final-wallet" style="font-size: 3rem;">$0</div>
             <p id="accuracy">Accuracy: 0%</p>
-            <div class="insight-box" id="insight-text"></div>
             <button class="primary-btn" onclick="nextCategory()">Next Category</button>
         </div>
     </div>
@@ -85,62 +87,73 @@ const trivia = [
     {
         cat: "Disney/Pixar",
         questions: [
-            {v:1, q:"What color is Mickey Mouse's shorts?", a:["Blue","Red","Yellow","Green"], c:1},
-            {v:2, q:"Which Zootopia character is a fast-talking con artist fox?", a:["Duke Weaselton","Nick Wilde","Chief Bogo","Finnick"], c:1},
-            {v:3, q:"In Pixar's 'Up', what is the name of the bird?", a:["Kevin","Doug","Russell","Carl"], c:0},
-            {v:4, q:"Judy Hopps' apartment is in which Zootopia district?", a:["Sahara Square","Tundratown","Grand Pangolin Arms","Rainforest District"], c:2},
-            {v:5, q:"Which Pixar film features a family of superheroes?", a:["The Incredibles","Inside Out","Lightyear","Onward"], c:0},
-            {v:6, q:"In Zootopia, Mr. Big is what kind of animal?", a:["Elephant","Shrew","Bear","Polar Bear"], c:1},
-            {v:7, q:"Who is the princess in the movie 'Brave'?", a:["Moana","Merida","Tiana","Elsa"], c:1},
-            {v:8, q:"What is the name of the toy store in Toy Story 2?", a:["Al's Toy Barn","Pizza Planet","Zurg's Palace","Andy's Shop"], c:0},
-            {v:9, q:"Which movie was the first Pixar feature film?", a:["A Bug's Life","Toy Story","Monsters Inc","Cars"], c:1},
-            {v:10, q:"In Zootopia, what does the 'Night Howler' flower actually do?", a:["Make animals sleep","Cause predator savagery","Heal wounds","Make animals fly"], c:1}
+            {v:1, q:"What color is Mickey Mouse's shorts?", a:["Blue","Red","Yellow","Green"], c:1, img:"https://th.bing.com/th/id/OSK.FyhjYMmMibmIEWGt9LQdj5GWP_7ehGRbbrhf-zR-yO8?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"},
+            {v:2, q:"Which Zootopia character is a fast-talking con artist fox?", a:["Duke Weaselton","Nick Wilde","Chief Bogo","Finnick"], c:1, img:"https://vegalleries.com/sites/default/files/dec23016a.jpg"},
+            {v:3, q:"In Pixar's 'Up', what is the name of the bird?", a:["Kevin","Doug","Russell","Carl"], c:0, img:"https://alchetron.com/cdn/Up-2009-film-images-c5010920-e2ba-42d9-b683-0f8bf6b837e.jpg"},
+            {v:4, q:"In Turning Red, what animal is Meilin 'Mei' Lee's spirit guide?", a:["Panda","Red Panda","Bear","Fox"], c:1, img:"https://lumiere-a.akamaihd.net/v1/images/p_turningred_22797_1_c17f32af.jpeg"},
+            {v:5, q:"Which Pixar film features a family of superheroes?", a:["The Incredibles","Inside Out","Lightyear","Onward"], c:0, img:"https://miro.medium.com/v2/resize:fit:1200/1*yKfHYnLlNz7i6fYwilENnQ.png"},
+            {v:6, q:"In Elemental, what are the two main elements that fall in love?", a:["Fire and Water","Fire and Earth","Air and Water","Fire and Air"], c:0, img:"https://miro.medium.com/v2/resize:fit:1200/1*yKfHYnLlNz7i6fYwilENnQ.png"},
+            {v:7, q:"Who is the princess in the movie 'Brave'?", a:["Moana","Merida","Tiana","Elsa"], c:1, img:"https://miro.medium.com/v2/resize:fit:1200/1*yKfHYnLlNz7i6fYwilENnQ.png"},
+            {v:8, q:"What is the name of the toy store in Toy Story 2?", a:["Al's Toy Barn","Pizza Planet","Zurg's Palace","Andy's Shop"], c:0, img:"https://miro.medium.com/v2/resize:fit:1200/1*yKfHYnLlNz7i6fYwilENnQ.png"},
+            {v:9, q:"Which movie was the first Pixar feature film?", a:["A Bug's Life","Toy Story","Monsters Inc","Cars"], c:1, img:"https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/b9861d12-016d-47dd-b888-d02d7afa8b15/dfu23zs-7a901df1-c202-4c66-95de-a05916b95b1e.png/v1/fill/w_1280,h_618,q_80,strp/disney_pixar_movies___1995___2023__by_coolteen15_dfu23zs-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NjE4IiwicGF0aCI6IlwvZlwvYjk4NjFkMTItMDE2ZC00N2RkLWI4ODgtZDAyZDdhZmE4YjE1XC9kZnUyM3pzLTdhOTAxZGYxLWMyMDItNGM2Ni05NWRlLWEwNTkxNmI5NWIxZS5wbmciLCJ3aWR0aCI6Ijw9MTI4MCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.onMULmM_wK1FR0JPvnPOt6Aoda4jbY3gUAKugJ4mK4M"},
+            {v:10, q:"In Onward, what is the name of the magical artifact that brings back the dead?", a:["Phoenix Gem","Cyclops Stone","Manticore's Tooth","Orion's Belt"], c:0, img:"https://tse1.mm.bing.net/th/id/OIP.vaXsxUk3Xj8ykjR4qnqcjgHaK-?rs=1&pid=ImgDetMain&o=7&rm=3"}
         ],
-        insight: "Fun Fact: The Zootopia Land in Shanghai (2024/25) uses state-of-the-art 'frameless' animatronics. Collector ears from the opening sell for $60+ USD now."
     },
     {
         cat: "Taylor Swift",
         questions: [
-            {v:1, q:"What is Taylor's middle name?", a:["Elizabeth","Alison","Rose","Jane"], c:1},
-            {v:2, q:"Which album features a snake as its mascot?", a:["Red","Reputation","1989","Midnights"], c:1},
-            {v:3, q:"In the song 'Shake It Off', what does she say she's 'lightning on'?", a:["Her feet","My own feet","The stage","The beat"], c:1},
-            {v:4, q:"Which 2024 album is often abbreviated as TTPD?", a:["The Tortured Poets Department","Taylor's Tiny Poetry Diary","Ten Thousand Pretty Dreams","The Total Pop Decade"], c:0},
-            {v:5, q:"How many Grammys did Taylor win for 'Album of the Year' by 2024?", a:["2","3","4","5"], c:2},
-            {v:6, q:"Which Taylor Swift music video features her as a man?", a:["The Man","Bad Blood","Me!","Anti-Hero"], c:0},
-            {v:7, q:"What is the 'Eras Tour' tradition involving beaded jewelry?", a:["Friendship Bracelets","Ring Exchange","Necklace Swaps","Anklets"], c:0},
-            {v:8, q:"Which song was written about her grandmother?", a:["Marjorie","Epiphany","Dorothea","Willow"], c:0},
-            {v:9, q:"In 2025/26, which city renamed itself 'Swiftie-ville' for her visit?", a:["Toronto","Vancouver","Miami","New Orleans"], c:1},
-            {v:10, q:"What was the first 'From the Vault' track to hit #1?", a:["All Too Well (10 Min)","Mr. Perfectly Fine","I Can See You","Is It Over Now?"], c:3}
+            {v:1, q:"What is Taylor's middle name?", a:["Elizabeth","Alison","Rose","Jane"], c:1, img:"https://akns-images.eonline.com/eol_images/Entire_Site/20241024/rs_1200x1200-241124155816-1200-taylor-swift-eras-tour-cjh-081524.jpg?fit=around|1080:1080&output-quality=90&crop=1080:1080;center,top"},
+            {v:2, q:"Which album features a snake as its mascot?", a:["Red","Reputation","1989","Midnights"], c:1, img:"https://akns-images.eonline.com/eol_images/Entire_Site/20241024/rs_1200x1200-241124155816-1200-taylor-swift-eras-tour-cjh-081524.jpg?fit=around|1080:1080&output-quality=90&crop=1080:1080;center,top"},
+            {v:3, q:"In the song 'Shake It Off', what does she say she's 'lightning on'?", a:["Her feet","My own feet","The stage","The beat"], c:1, img:"https://akns-images.eonline.com/eol_images/Entire_Site/20241024/rs_1200x1200-241124155816-1200-taylor-swift-eras-tour-cjh-081524.jpg?fit=around|1080:1080&output-quality=90&crop=1080:1080;center,top"},
+            {v:4, q:"Which 2024 album is often abbreviated as TTPD?", a:["The Tortured Poets Department","Taylor's Tiny Poetry Diary","Ten Thousand Pretty Dreams","The Total Pop Decade"], c:0, img:"https://akns-images.eonline.com/eol_images/Entire_Site/20241024/rs_1200x1200-241124155816-1200-taylor-swift-eras-tour-cjh-081524.jpg?fit=around|1080:1080&output-quality=90&crop=1080:1080;center,top"},
+            {v:5, q:"How many Grammys did Taylor win for 'Album of the Year' by 2024?", a:["2","3","4","5"], c:2, img:"https://akns-images.eonline.com/eol_images/Entire_Site/20241024/rs_1200x1200-241124155816-1200-taylor-swift-eras-tour-cjh-081524.jpg?fit=around|1080:1080&output-quality=90&crop=1080:1080;center,top"},
+            {v:6, q:"Which Taylor Swift music video features her as a man?", a:["The Man","Bad Blood","Me!","Anti-Hero"], c:0, img:"https://akns-images.eonline.com/eol_images/Entire_Site/20241024/rs_1200x1200-241124155816-1200-taylor-swift-eras-tour-cjh-081524.jpg?fit=around|1080:1080&output-quality=90&crop=1080:1080;center,top"},
+            {v:7, q:"What is the 'Eras Tour' tradition involving beaded jewelry?", a:["Friendship Bracelets","Ring Exchange","Necklace Swaps","Anklets"], c:0, img:"https://akns-images.eonline.com/eol_images/Entire_Site/20241024/rs_1200x1200-241124155816-1200-taylor-swift-eras-tour-cjh-081524.jpg?fit=around|1080:1080&output-quality=90&crop=1080:1080;center,top"},
+            {v:8, q:"Which song was written about her grandmother?", a:["Marjorie","Epiphany","Dorothea","Willow"], c:0, img:"https://akns-images.eonline.com/eol_images/Entire_Site/20241024/rs_1200x1200-241124155816-1200-taylor-swift-eras-tour-cjh-081524.jpg?fit=around|1080:1080&output-quality=90&crop=1080:1080;center,top"},
+            {v:9, q:"In 2025/26, which city renamed itself 'Swiftie-ville' for her visit?", a:["Toronto","Vancouver","Miami","New Orleans"], c:1, img:"https://akns-images.eonline.com/eol_images/Entire_Site/20241024/rs_1200x1200-241124155816-1200-taylor-swift-eras-tour-cjh-081524.jpg?fit=around|1080:1080&output-quality=90&crop=1080:1080;center,top"},
+            {v:10, q:"What was the first 'From the Vault' track to hit #1?", a:["All Too Well (10 Min)","Mr. Perfectly Fine","I Can See You","Is It Over Now?"], c:3, img:"https://akns-images.eonline.com/eol_images/Entire_Site/20241024/rs_1200x1200-241124155816-1200-taylor-swift-eras-tour-cjh-081524.jpg?fit=around|1080:1080&output-quality=90&crop=1080:1080;center,top"}
         ],
-        insight: "Market Insight: Taylor Swift vinyl 'variants' (different colors) retail for $40 but can resell for $150 if they are limited 'Target' or 'Website' exclusives."
     },
     {
         cat: "Finance & Canada",
         questions: [
-            {v:1, q:"What is the Canadian $1 coin called?", a:["Toonie","Loonie","Buck","Maple"], c:1},
-            {v:2, q:"What is 'Interest'?", a:["A tax on savings","Cost of borrowing money","A bank penalty","A government gift"], c:1},
-            {v:3, q:"Which province is known for its red sand beaches?", a:["NS","NB","PEI","NL"], c:2},
-            {v:4, q:"What does RRSP stand for?", a:["Registered Retirement Savings Plan","Real Rate Savings Plan","Royal Revenue Saving Program","Rapid Retirement Saving Plan"], c:0},
-            {v:5, q:"Who is the monarch on the Canadian 20-dollar bill?", a:["Queen Elizabeth II","King Charles III","Queen Victoria","King George"], c:1},
-            {v:6, q:"What is a 'Credit Score' measuring?", a:"Your income","Your net worth","Your reliability to repay debt","Your savings"], c:2},
-            {v:7, q:"Which 2025 event marked a huge change in Canadian housing policy?", a:["The Rent Cap Act","The Foreign Buyer Ban Extension","The Tiny Home Grant","The Interest Rate Freeze"], c:1},
-            {v:8, q:"What is 'Diversification' in investing?", a:["Buying one big stock","Spreading money across different assets","Saving in a shoebox","Only buying gold"], c:1},
-            {v:9, q:"Which city is the capital of Canada?", a:["Toronto","Montreal","Ottawa","Vancouver"], c:2},
-            {v:10, q:"What is the 'Capital Gains Tax'?", a:["Tax on your salary","Tax on the profit from selling an asset","A tax for being rich","A tax on bank interest"], c:1}
+            {v:1, q:"What is the Canadian $1 coin called?", a:["Toonie","Loonie","Buck","Maple"], c:1, img:"https://media.istockphoto.com/photos/canadian-flag-waving-in-the-wind-background-picture-id1358823417?b=1&k=20&m=1358823417&s=170667a&w=0&h=_8vaE6972jcKm8Yktu5mX7XrYFHhiCzdFeno7tZ4u6k="},
+            {v:2, q:"What is 'Interest'?", a:["A tax on savings","Cost of borrowing money","A bank penalty","A government gift"], c:1, img:"https://media.istockphoto.com/photos/canadian-flag-waving-in-the-wind-background-picture-id1358823417?b=1&k=20&m=1358823417&s=170667a&w=0&h=_8vaE6972jcKm8Yktu5mX7XrYFHhiCzdFeno7tZ4u6k="},
+            {v:3, q:"Which province is known for its red sand beaches?", a:["NS","NB","PEI","NL"], c:2, img:"https://media.istockphoto.com/photos/canadian-flag-waving-in-the-wind-background-picture-id1358823417?b=1&k=20&m=1358823417&s=170667a&w=0&h=_8vaE6972jcKm8Yktu5mX7XrYFHhiCzdFeno7tZ4u6k="},
+            {v:4, q:"What does RRSP stand for?", a:["Registered Retirement Savings Plan","Real Rate Savings Plan","Royal Revenue Saving Program","Rapid Retirement Saving Plan"], c:0, img:"https://media.istockphoto.com/photos/canadian-flag-waving-in-the-wind-background-picture-id1358823417?b=1&k=20&m=1358823417&s=170667a&w=0&h=_8vaE6972jcKm8Yktu5mX7XrYFHhiCzdFeno7tZ4u6k="},
+            {v:5, q:"Who is the monarch on the Canadian 20-dollar bill?", a:["Queen Elizabeth II","King Charles III","Queen Victoria","King George"], c:1, img:"https://media.istockphoto.com/photos/canadian-flag-waving-in-the-wind-background-picture-id1358823417?b=1&k=20&m=1358823417&s=170667a&w=0&h=_8vaE6972jcKm8Yktu5mX7XrYFHhiCzdFeno7tZ4u6k="},
+            {v:6, q:"What is a 'Credit Score' measuring?", a:["Your income","Your net worth","Your reliability to repay debt","Your savings"], c:2, img:"https://media.istockphoto.com/photos/canadian-flag-waving-in-the-wind-background-picture-id1358823417?b=1&k=20&m=1358823417&s=170667a&w=0&h=_8vaE6972jcKm8Yktu5mX7XrYFHhiCzdFeno7tZ4u6k="},
+            {v:7, q:"Which 2025 event marked a huge change in Canadian housing policy?", a:["The Rent Cap Act","The Foreign Buyer Ban Extension","The Tiny Home Grant","The Interest Rate Freeze"], c:1, img:"https://media.istockphoto.com/photos/canadian-flag-waving-in-the-wind-background-picture-id1358823417?b=1&k=20&m=1358823417&s=170667a&w=0&h=_8vaE6972jcKm8Yktu5mX7XrYFHhiCzdFeno7tZ4u6k="},
+            {v:8, q:"What is 'Diversification' in investing?", a:["Buying one big stock","Spreading money across different assets","Saving in a shoebox","Only buying gold"], c:1, img:"https://media.istockphoto.com/photos/canadian-flag-waving-in-the-wind-background-picture-id1358823417?b=1&k=20&m=1358823417&s=170667a&w=0&h=_8vaE6972jcKm8Yktu5mX7XrYFHhiCzdFeno7tZ4u6k="},
+            {v:9, q:"Which city is the capital of Canada?", a:["Toronto","Montreal","Ottawa","Vancouver"], c:2, img:"https://media.istockphoto.com/photos/canadian-flag-waving-in-the-wind-background-picture-id1358823417?b=1&k=20&m=1358823417&s=170667a&w=0&h=_8vaE6972jcKm8Yktu5mX7XrYFHhiCzdFeno7tZ4u6k="},
+            {v:10, q:"What is the 'Capital Gains Tax'?", a:["Tax on your salary","Tax on the profit from selling an asset","A tax for being rich","A tax on bank interest"], c:1, img:"https://media.istockphoto.com/photos/canadian-flag-waving-in-the-wind-background-picture-id1358823417?b=1&k=20&m=1358823417&s=170667a&w=0&h=_8vaE6972jcKm8Yktu5mX7XrYFHhiCzdFeno7tZ4u6k="}
         ],
-        insight: "Money Tip: A 'Steal' for a first-time investor is any Index Fund with an MER (Fee) under 0.10%. New investors often lose 2% to hidden bank fees!"
     }
 ];
 
-let catIdx = 0, qIdx = 0, wallet = 0, catCorrect = 0;
+let catIdx = 0, qIdx = 0, wallet = 0, catCorrect = 0, totalCorrect = 0;
 
 function loadQuestion() {
     const q = trivia[catIdx].questions[qIdx];
     document.getElementById('cat-label').innerText = trivia[catIdx].cat;
+    const catLabel = document.getElementById('cat-label');
+    if (catIdx === 0) {
+        catLabel.style.background = 'linear-gradient(to right, #0066cc, #ff0000)';
+        catLabel.style.color = 'white';
+    } else if (catIdx === 1) {
+        catLabel.style.background = '#ff69b4';
+        catLabel.style.color = 'white';
+    } else if (catIdx === 2) {
+        catLabel.style.background = 'linear-gradient(to right, #ff0000, #ffffff)';
+        catLabel.style.color = 'black';
+    }
     document.getElementById('wallet-display').innerText = `$${wallet}`;
     document.getElementById('val-label').innerText = `$${q.v} Question`;
     document.getElementById('q-text').innerText = q.q;
     document.getElementById('progress-bar').style.width = `${(qIdx / 10) * 100}%`;
+    
+    const imgDiv = document.getElementById('question-image');
+    imgDiv.innerHTML = q.img ? `<img src="${q.img}" alt="Question graphic">` : '';
     
     const container = document.getElementById('opt-container');
     container.innerHTML = '';
@@ -160,6 +173,7 @@ function checkAnswer(idx) {
     if (idx === q.c) {
         wallet += q.v;
         catCorrect++;
+        totalCorrect++;
         fb.innerText = `CORRECT! +$${q.v}`;
         fb.className = 'correct';
     } else {
@@ -180,7 +194,6 @@ function showResults() {
     document.getElementById('result-screen').classList.remove('hidden');
     document.getElementById('final-wallet').innerText = `$${wallet}`;
     document.getElementById('accuracy').innerText = `Category Accuracy: ${(catCorrect/10)*100}%`;
-    document.getElementById('insight-text').innerText = trivia[catIdx].insight;
 }
 
 function nextCategory() {
@@ -191,7 +204,16 @@ function nextCategory() {
         document.getElementById('result-screen').classList.add('hidden');
         loadQuestion();
     } else {
-        document.getElementById('res-title').innerText = "Game Over!";
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('res-title').innerText = "Congratulations!";
+        document.querySelector('#result-screen p').innerText = "Total Amount Won:";
+        document.getElementById('final-wallet').innerText = `$${wallet}`;
+        document.getElementById('accuracy').innerText = `Overall Accuracy: ${(totalCorrect/30)*100}%`;
+        const resultScreen = document.getElementById('result-screen');
+        const newP = document.createElement('p');
+        newP.innerText = "You get to spend with Leon! Or owe him money... Either way, it's a win!";
+        resultScreen.appendChild(newP);
         document.querySelector('.primary-btn').classList.add('hidden');
     }
 }
